@@ -15,71 +15,53 @@
             overflow: hidden;
             user-select: none;
         }
-        canvas {
-            display: block;
+
+        svg {
+            width: 90vw;
+            max-width: 450px;
+            height: auto;
+        }
+
+        text {
+            font-family: monospace;
+            font-size: 14px;
+            font-weight: bold;
+            fill: #ff4500;
+            /* Նեոնային վառ կարմիր փայլ */
+            filter: drop-shadow(0px 0px 6px #ff0000) drop-shadow(0px 0px 15px #ff4500);
         }
     </style>
 </head>
 <body>
 
-    <canvas id="heartCanvas"></canvas>
+    <svg viewBox="0 0 300 300">
+        <path id="heartPath" d="M 150,90 
+                 C 150,20 60,20 60,90 
+                 C 60,160 150,230 150,250 
+                 C 150,230 240,160 240,90 
+                 C 240,20 150,20 150,90 Z" 
+              fill="none" />
+        
+        <text>
+            <textPath id="heartTextPath" href="#heartPath" startOffset="0%">
+                I LOVE YOU  I LOVE YOU  I LOVE YOU  I LOVE YOU  I LOVE YOU  I LOVE YOU  I LOVE YOU 
+            </textPath>
+        </text>
+    </svg>
 
 <script>
-    const canvas = document.getElementById('heartCanvas');
-    const ctx = canvas.getContext('2d');
-
-    // Էկրանի չափսերին հարմարեցում
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
-    const textStr = "I LOVE YOU   ";
+    const textPath = document.getElementById('heartTextPath');
     let offset = 0;
 
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Կենտրոնը և սրտի չափսը՝ կախված էկրանից
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2 + 30;
-        const size = Math.min(canvas.width, canvas.height) * 0.45; 
-
-        ctx.font = "bold 13px monospace";
-        // Նեոնային վառ նարնջագույն-կարմիր փայլը
-        ctx.fillStyle = "#ff4500";
-        ctx.shadowColor = "#ff0000";
-        ctx.shadowBlur = 12;
-
-        let totalPoints = 120; // Քանի տառ լինի սրտի վրա
-        
-        for (let i = 0; i < totalPoints; i++) {
-            // Պտույտի էֆեկտը offset-ի միջոցով
-            let t = (i / totalPoints) * Math.PI * 2 + offset;
-            
-            // Մաթեմատիկական կատարյալ, լայն սրտի բանաձևը (ինչպես քո առաջին վիդեոյում էր)
-            let x = 16 * Math.pow(Math.sin(t), 3);
-            let y = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
-
-            // Մասշտաբավորում և տեղադրում կենտրոնում
-            let posX = centerX + x * (size / 28);
-            let posY = centerY + y * (size / 28);
-
-            // Գտնում ենք տառի ինդեքսը
-            let charIdx = i % textStr.length;
-            
-            ctx.fillText(textStr[charIdx], posX, posY);
-        }
-
-        // Պտտվելու արագությունը
-        offset -= 0.015; 
-        
-        requestAnimationFrame(draw);
+    function animateHeart() {
+        // Տեքստը սահուն առաջ է գնում գծի երկայնքով
+        offset -= 0.4;
+        textPath.setAttribute('startOffset', offset + '%');
+        requestAnimationFrame(animateHeart);
     }
 
-    draw();
+    animateHeart();
 </script>
 </body>
 </html>
+
