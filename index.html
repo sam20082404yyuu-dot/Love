@@ -8,7 +8,6 @@
         body {
             margin: 0;
             background-color: #000;
-            /* Հենց քո նկարի վառ նեոնային նարնջագույն-կարմիր երանգը */
             color: #ff4500;
             font-family: monospace;
             font-weight: bold;
@@ -24,27 +23,7 @@
             white-space: pre;
             font-size: 10px;
             line-height: 10px;
-            /* Շիկացած նեոնային փայլ */
             text-shadow: 0 0 6px #ff4500, 0 0 15px #ff0000;
-            opacity: 0;
-            transform: scale(0.9);
-            transition: opacity 1.5s ease-out, transform 1.5s ease-out;
-        }
-
-        /* Ամբողջական սրտի հայտնվելու էֆեկտը */
-        #heart-container.loaded {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        /* Տառերի ալիքաձև շարժման (Pulse & Float) էֆեկտը */
-        @keyframes heartPulse {
-            0%, 100% { transform: scale(1); text-shadow: 0 0 6px #ff4500, 0 0 12px #ff0000; }
-            50% { transform: scale(1.03); text-shadow: 0 0 12px #ff4500, 0 0 25px #ff0000; color: #ff5722; }
-        }
-
-        .animating {
-            animation: heartPulse 1.5s infinite ease-in-out;
         }
     </style>
 </head>
@@ -54,64 +33,60 @@
 
 <script>
     const container = document.getElementById('heart-container');
-    const textStr = "I LOVE YOU ";
+    const textStr = "  I LOVE YOU ";
     
-    // Ցանցի չափսերը՝ նկարի սրտի ձևին համապատասխան
     const width = 60;
-    const height = 28;
-    
-    function isInsideHeart(f_x, f_y) {
-        return Math.pow(f_x*f_x + f_y*f_y - 1, 3) - f_x*f_x * Math.pow(f_y, 3) <= 0;
+    const height = 24;
+
+    // Ճիշտ ու լայն սրտի ձևի բանաձևը (ինչպես վիդեոյում է)
+    function isHeartEdge(x, y) {
+        let nx = (x - width / 2) / (width / 2.3);
+        let ny = -(y - height / 2.2) / (height / 1.8);
+        
+        let f = Math.pow(nx*nx + ny*ny - 1, 3) - nx*nx * ny*ny*ny;
+        return f <= 0 && f >= -0.3; // Վերցնում է միայն բարակ եզրագիծը
     }
 
-    let charIdx = 0;
-    let finalRows = [];
-
-    for (let y = 14; y >= -14; y--) {
-        let rowStr = "";
-        for (let x = -30; x <= 30; x++) {
-            let f_x = x * 0.045;
-            let f_y = y * 0.11;
-
-            // Ստուգում ենք սրտի մեջ լինելը
-            if (isInsideHeart(f_x, f_y)) {
-                // Որպեսզի մեջտեղը ազատ (դատարկ) լինի, ստուգում ենք՝ արդյոք սա եզրագիծ է
-                let isEdge = false;
-                for (let dy = -1; dy <= 1; dy++) {
-                    for (let dx = -1; dx <= 1; dx++) {
-                        if (!isInsideHeart((x + dx) * 0.045, (y + dy) * 0.11)) {
-                            isEdge = true;
-                        }
-                    }
-                }
-                
-                // Եթե եզրագիծ է՝ դնում ենք տառ, եթե մեջտեղն է՝ թողնում ենք ազատ (դատարկ տարածություն)
-                if (isEdge) {
-                    rowStr += textStr[charIdx % textStr.length];
-                    charIdx++;
-                } else {
-                    rowStr += " ";
-                }
-            } else {
-                rowStr += " ";
+    // Հավաքում ենք սրտի բոլոր կետերը հերթականությամբ
+    let edgePoints = [];
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            if (isHeartEdge(x, y)) {
+                let angle = Math.atan2(y - height/2, x - width/2);
+                edgePoints.push({x, y, angle});
             }
         }
-        finalRows.push(rowStr);
     }
 
-    // Միացնում ենք տողերը իրար
-    container.innerHTML = finalRows.join("\n");
+    // Դասավորում ենք ըստ անկյան, որ տառերը շրջանաձև հաջորդեն իրար
+    edgePoints.sort((a, b) => a.angle - b.angle);
 
-    // Անիմացիան միացնում ենք էջը բացելուց անմիջապես հետո
-    window.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            // Սիրտը սահուն, ամբողջությամբ բացվում է էկրանին
-            container.classList.add('loaded');
-            container.classList.add('animating');
-        }, 100);
-    });
+    let offset = 0;
+
+    function drawHeart() {
+        let grid = [];
+        for (let y = 0; y < height; y++) {
+            grid[y] = [];
+            for (let x = 0; x < width; x++) grid[y][x] = " ";
+        }
+
+        // Տեքստը պտտում ենք offset-ի շնորհիվ (վազող տողի էֆեկտ)
+        edgePoints.forEach((p, index) => {
+            let charIndex = (index + offset) % textStr.length;
+            grid[p.y][p.x] = textStr[charIndex];
+        });
+
+        let htmlOutput = "";
+        for (let y = 0; y < height; y++) {
+            htmlOutput += grid[y].join("") + "\n";
+        }
+        container.innerHTML = htmlOutput;
+        
+        offset = (offset + 1) % textStr.length;
+    }
+
+    // Անիմացիայի արագությունը (որքան փոքր է թիվը, այնքան արագ կպտտվի)
+    setInterval(drawHeart, 150);
 </script>
 </body>
 </html>
-
-
