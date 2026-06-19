@@ -16,52 +16,64 @@
             user-select: none;
         }
 
-        svg {
-            width: 90vw;
-            max-width: 450px;
-            height: auto;
+        /* Կատարյալ, անփոփոխ սրտի կառուցվածքը */
+        .heart-wrapper {
+            position: relative;
+            width: 260px;
+            height: 260px;
         }
 
-        text {
+        /* Սրտի երկու կլոր թևերը և տակը */
+        .heart-block {
+            position: absolute;
+            width: 160px;
+            height: 240px;
+            /* Իսկական վառ նեոնային նարնջագույն-կարմիր գույնը */
+            border: 3.5px dashed #ff4500;
+            border-bottom: none;
+            border-radius: 160px 160px 0 0;
+            box-shadow: 0 0 10px #ff0000, inset 0 0 10px #ff0000;
+        }
+
+        .left-side {
+            left: 0;
+            transform: rotate(-45deg);
+            transform-origin: 100% 100%;
+        }
+
+        .right-side {
+            right: 0;
+            transform: rotate(45deg);
+            transform-origin: 0 100%;
+        }
+
+        /* Կենտրոնի տեքստը՝ «I LOVE YOU», որը սահուն պտտվում է */
+        .center-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            top: 40%;
             font-family: monospace;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: bold;
-            fill: #ff4500;
-            /* Նեոնային վառ կարմիր փայլ */
-            filter: drop-shadow(0px 0px 6px #ff0000) drop-shadow(0px 0px 15px #ff4500);
+            color: #ff4500;
+            text-shadow: 0 0 8px #ff0000, 0 0 20px #ff4500;
+            animation: textPulse 1.5s infinite ease-in-out;
+        }
+
+        @keyframes textPulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 15px #ff0000, 0 0 30px #ff4500; }
         }
     </style>
 </head>
 <body>
 
-    <svg viewBox="0 0 300 300">
-        <path id="heartPath" d="M 150,90 
-                 C 150,20 60,20 60,90 
-                 C 60,160 150,230 150,250 
-                 C 150,230 240,160 240,90 
-                 C 240,20 150,20 150,90 Z" 
-              fill="none" />
-        
-        <text>
-            <textPath id="heartTextPath" href="#heartPath" startOffset="0%">
-                I LOVE YOU  I LOVE YOU  I LOVE YOU  I LOVE YOU  I LOVE YOU  I LOVE YOU  I LOVE YOU 
-            </textPath>
-        </text>
-    </svg>
+    <div class="heart-wrapper">
+        <div class="heart-block left-side"></div>
+        <div class="heart-block right-side"></div>
+        <div class="center-text">I LOVE YOU</div>
+    </div>
 
-<script>
-    const textPath = document.getElementById('heartTextPath');
-    let offset = 0;
-
-    function animateHeart() {
-        // Տեքստը սահուն առաջ է գնում գծի երկայնքով
-        offset -= 0.4;
-        textPath.setAttribute('startOffset', offset + '%');
-        requestAnimationFrame(animateHeart);
-    }
-
-    animateHeart();
-</script>
 </body>
 </html>
-
