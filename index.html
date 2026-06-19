@@ -21,9 +21,10 @@
 
         #heart-container {
             white-space: pre;
-            font-size: 10px;
+            font-size: 11px;
             line-height: 10px;
-            text-shadow: 0 0 6px #ff4500, 0 0 15px #ff0000;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px #ff4500, 0 0 20px #ff0000;
         }
     </style>
 </head>
@@ -33,60 +34,59 @@
 
 <script>
     const container = document.getElementById('heart-container');
-    const textStr = "  I LOVE YOU ";
+    const textStr = "I LOVE YOU ";
     
-    const width = 60;
-    const height = 24;
+    // Կատարյալ կլորացված սրտի ձևանմուշ (template)
+    const heartTemplate = [
+        "      I LOVE YOU         I LOVE YOU      ",
+        "    I            LO   VE            I    ",
+        "  I                O                 I  ",
+        " I                                    I ",
+        "I                                      I",
+        "I                                      I",
+        " I                                    I ",
+        "  I                                  I  ",
+        "   I                                I   ",
+        "    I                              I    ",
+        "      I                          I      ",
+        "        I                      I        ",
+        "          I                  I          ",
+        "            I              I            ",
+        "              I          I              ",
+        "                I      I                ",
+        "                  I  I                  ",
+        "                   I                    "
+    ];
 
-    // Ճիշտ ու լայն սրտի ձևի բանաձևը (ինչպես վիդեոյում է)
-    function isHeartEdge(x, y) {
-        let nx = (x - width / 2) / (width / 2.3);
-        let ny = -(y - height / 2.2) / (height / 1.8);
-        
-        let f = Math.pow(nx*nx + ny*ny - 1, 3) - nx*nx * ny*ny*ny;
-        return f <= 0 && f >= -0.3; // Վերցնում է միայն բարակ եզրագիծը
-    }
-
-    // Հավաքում ենք սրտի բոլոր կետերը հերթականությամբ
-    let edgePoints = [];
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            if (isHeartEdge(x, y)) {
-                let angle = Math.atan2(y - height/2, x - width/2);
-                edgePoints.push({x, y, angle});
-            }
-        }
-    }
-
-    // Դասավորում ենք ըստ անկյան, որ տառերը շրջանաձև հաջորդեն իրար
-    edgePoints.sort((a, b) => a.angle - b.angle);
-
+    const height = heartTemplate.length;
+    const width = heartTemplate[0].length;
     let offset = 0;
 
     function drawHeart() {
-        let grid = [];
+        let outputRows = [];
+        let charIndex = offset;
+
         for (let y = 0; y < height; y++) {
-            grid[y] = [];
-            for (let x = 0; x < width; x++) grid[y][x] = " ";
+            let rowStr = "";
+            for (let x = 0; x < width; x++) {
+                // Եթե տվյալ կետում template-ի մեջ դատարկ տարածություն չէ, ուրեմն սրտի եզրագիծն է
+                if (heartTemplate[y][x] !== " ") {
+                    rowStr += textStr[charIndex % textStr.length];
+                    charIndex++;
+                } else {
+                    rowStr += " ";
+                }
+            }
+            outputRows.push(rowStr);
         }
 
-        // Տեքստը պտտում ենք offset-ի շնորհիվ (վազող տողի էֆեկտ)
-        edgePoints.forEach((p, index) => {
-            let charIndex = (index + offset) % textStr.length;
-            grid[p.y][p.x] = textStr[charIndex];
-        });
-
-        let htmlOutput = "";
-        for (let y = 0; y < height; y++) {
-            htmlOutput += grid[y].join("") + "\n";
-        }
-        container.innerHTML = htmlOutput;
-        
+        container.innerHTML = outputRows.join("\n");
+        // Անիմացիայի արագության (սահելու) քայլը
         offset = (offset + 1) % textStr.length;
     }
 
-    // Անիմացիայի արագությունը (որքան փոքր է թիվը, այնքան արագ կպտտվի)
-    setInterval(drawHeart, 150);
+    // Պտտվելու արագությունը (140 միլիվայրկյան)
+    setInterval(drawHeart, 140);
 </script>
 </body>
 </html>
