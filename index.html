@@ -8,7 +8,8 @@
         body {
             margin: 0;
             background-color: #000;
-            color: #ff2a2a;
+            /* Հենց քո նկարի վառ նեոնային նարնջագույն-կարմիր երանգը */
+            color: #ff4500;
             font-family: monospace;
             font-weight: bold;
             display: flex;
@@ -21,33 +22,29 @@
 
         #heart-container {
             white-space: pre;
-            font-size: 8px;
-            line-height: 8px;
-            text-shadow: 0 0 10px rgba(255, 42, 42, 0.8);
-        }
-
-        /* Տառերի հայտնվելու էֆեկտը՝ ձախից աջ */
-        .char {
-            display: inline-block;
+            font-size: 10px;
+            line-height: 10px;
+            /* Շիկացած նեոնային փայլ */
+            text-shadow: 0 0 6px #ff4500, 0 0 15px #ff0000;
             opacity: 0;
-            transform: scale(0);
-            transition: opacity 0.1s ease, transform 0.1s ease;
+            transform: scale(0.9);
+            transition: opacity 1.5s ease-out, transform 1.5s ease-out;
         }
 
-        .char.visible {
+        /* Ամբողջական սրտի հայտնվելու էֆեկտը */
+        #heart-container.loaded {
             opacity: 1;
             transform: scale(1);
         }
 
-        /* Բաբախելու/Թարթելու էֆեկտը */
-        @keyframes pulse {
-            0% { transform: scale(1); text-shadow: 0 0 10px rgba(255, 42, 42, 0.8); }
-            50% { transform: scale(1.05); text-shadow: 0 0 25px rgba(255, 42, 42, 1); }
-            100% { transform: scale(1); text-shadow: 0 0 10px rgba(255, 42, 42, 0.8); }
+        /* Տառերի ալիքաձև շարժման (Pulse & Float) էֆեկտը */
+        @keyframes heartPulse {
+            0%, 100% { transform: scale(1); text-shadow: 0 0 6px #ff4500, 0 0 12px #ff0000; }
+            50% { transform: scale(1.03); text-shadow: 0 0 12px #ff4500, 0 0 25px #ff0000; color: #ff5722; }
         }
 
-        .beating {
-            animation: pulse 1.2s infinite ease-in-out;
+        .animating {
+            animation: heartPulse 1.5s infinite ease-in-out;
         }
     </style>
 </head>
@@ -58,44 +55,63 @@
 <script>
     const container = document.getElementById('heart-container');
     const textStr = "I LOVE YOU ";
-    let charIdx = 0;
-    let htmlOutput = "";
-
-    // Քո ուզած սրտի ձևը՝ վեբի համար
-    for (let y = 13; y >= -13; y--) {
-        let rowHtml = "";
-        for (let x = -27; x <= 27; x++) {
-            let f_x = x * 0.045;
-            let f_y = y * 0.11;
-            
-            if (Math.pow(f_x*f_x + f_y*f_y - 1, 3) - f_x*f_x * Math.pow(f_y, 3) <= 0) {
-                let char = textStr[charIdx % textStr.length];
-                rowHtml += `<span class="char">${char}</span>`;
-                charIdx++;
-            } else {
-                rowHtml += " ";
-            }
-        }
-        htmlOutput += rowHtml + "\n";
+    
+    // Ցանցի չափսերը՝ նկարի սրտի ձևին համապատասխան
+    const width = 60;
+    const height = 28;
+    
+    function isInsideHeart(f_x, f_y) {
+        return Math.pow(f_x*f_x + f_y*f_y - 1, 3) - f_x*f_x * Math.pow(f_y, 3) <= 0;
     }
 
-    container.innerHTML = htmlOutput;
+    let charIdx = 0;
+    let finalRows = [];
 
-    // Անիմացիան՝ տառերը հերթով բացվում են ձախից աջ
-    const chars = document.querySelectorAll('.char');
-    chars.forEach((char, index) => {
-        setTimeout(() => {
-            char.classList.add('visible');
-            
-            // Երբ ամենավերջին տառը բացվի, միանում է թարթելը
-            if (index === chars.length - 1) {
-                setTimeout(() => {
-                    container.classList.add('beating');
-                }, 200);
+    for (let y = 14; y >= -14; y--) {
+        let rowStr = "";
+        for (let x = -30; x <= 30; x++) {
+            let f_x = x * 0.045;
+            let f_y = y * 0.11;
+
+            // Ստուգում ենք սրտի մեջ լինելը
+            if (isInsideHeart(f_x, f_y)) {
+                // Որպեսզի մեջտեղը ազատ (դատարկ) լինի, ստուգում ենք՝ արդյոք սա եզրագիծ է
+                let isEdge = false;
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        if (!isInsideHeart((x + dx) * 0.045, (y + dy) * 0.11)) {
+                            isEdge = true;
+                        }
+                    }
+                }
+                
+                // Եթե եզրագիծ է՝ դնում ենք տառ, եթե մեջտեղն է՝ թողնում ենք ազատ (դատարկ տարածություն)
+                if (isEdge) {
+                    rowStr += textStr[charIdx % textStr.length];
+                    charIdx++;
+                } else {
+                    rowStr += " ";
+                }
+            } else {
+                rowStr += " ";
             }
-        }, index * 3); // 3 միլիվայրկյան ամեն տառի համար
-});
+        }
+        finalRows.push(rowStr);
+    }
+
+    // Միացնում ենք տողերը իրար
+    container.innerHTML = finalRows.join("\n");
+
+    // Անիմացիան միացնում ենք էջը բացելուց անմիջապես հետո
+    window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            // Սիրտը սահուն, ամբողջությամբ բացվում է էկրանին
+            container.classList.add('loaded');
+            container.classList.add('animating');
+        }, 100);
+    });
 </script>
 </body>
 </html>
+
 
